@@ -1,0 +1,11 @@
+.DS_Store
+.build/
+Packages/
+Package.pins
+Package.resolved
+.xcodeproj
+xcuserdata/
+.swiftpm
+.netrc
+.swiftlint.yml
+*.graffle
