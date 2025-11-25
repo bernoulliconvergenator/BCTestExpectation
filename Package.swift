@@ -107,5 +107,7 @@ let package = Package(
             .enableUpcomingFeature("InferIsolatedConformances")
          ]
       )
-   ]
+   ],
+
+   swiftLanguageModes: [.v6]
 )

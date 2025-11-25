@@ -162,7 +162,73 @@ struct AlternativeObservableTests: Loggable {
       }
    }
 
-   // MARK: - test sequence of changes to button state
+   // MARK: - test multiple changes to button state using Confirmation
+
+   // Funky. Double check on argument changeCount to confirm change order and record expected umber of events.
+   @Test func testOnButtonTap_buttonState_confirmation() async throws {
+      let viewModel = ViewModel(chimChim: ChimChim())
+      try await confirmation(expectedCount: 2) { confirmation in
+         @MainActor func observe(changeCount: Int) {
+            withObservationTracking {
+               let _ = viewModel.buttonState
+            } onChange: { [observe] in // capture local function with global isolation workaround for non-Sendable Swift bug
+               Task { @MainActor in
+                  log("onChange buttonState=\(viewModel.buttonState)")
+                  switch viewModel.buttonState {
+                  case .on:
+                     #expect(changeCount == 0)
+                     if changeCount == 0 { confirmation() }
+                     observe(changeCount + 1)
+                  case .off:
+                     #expect(changeCount == 1)
+                     if changeCount == 1 { confirmation() }
+                     observe(changeCount + 1)
+                  }
+               }
+            }
+         }
+         observe(changeCount: 0)
+         viewModel.onButtonTap()
+         try await Task.sleep(for: .seconds(2)) // MUST sleep to allow events to occur, sleep non-short circuiting
+      }
+   }
+
+   // MARK: - test multiple change to button state using CheckedContinuation
+
+   private enum Error: Swift.Error {
+      case unexpectedChange
+   }
+
+   @Test func testOnButtonTap_buttonState_checkedContinuation() async throws {
+      let viewModel = ViewModel(chimChim: ChimChim())
+      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Swift.Error>) in
+         @MainActor func observe(changeCount: Int) {
+            withObservationTracking {
+               let _ = viewModel.buttonState
+            } onChange: { [observe] in // capture local function with global isolation workaround for non-Sendable Swift bug
+               Task { @MainActor in
+                  log("onChange buttonState=\(viewModel.buttonState)")
+                  switch viewModel.buttonState {
+                  case .on:
+                     #expect(changeCount == 0)
+                     observe(changeCount + 1)
+                  case .off:
+                     #expect(changeCount == 1)
+                     if changeCount == 1 {
+                        continuation.resume()
+                     } else {
+                        continuation.resume(throwing: Error.unexpectedChange)
+                     }
+                  }
+               }
+            }
+         }
+         observe(changeCount: 0)
+         viewModel.onButtonTap()
+      }
+   }
+
+   // MARK: - test multiple changes to button state using an AsyncStream
 
    // Observe using a `observationTrackingStream`. No need for `Confirmation`, `CheckedContinuation`, nor `BCTestExpectation`,
    // but requires correctly added `break loop` statements and no way to include a timeout.

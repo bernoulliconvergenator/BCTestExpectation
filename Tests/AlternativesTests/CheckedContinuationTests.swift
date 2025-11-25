@@ -11,7 +11,7 @@ import Testing
 
 @MainActor
 @Suite(.serialized)
-struct CheckedContinuationSuite {
+struct CheckedContinuationTests {
    @Test func passInTaskBeforeResume() async throws {
       let myBool = false
       await withCheckedContinuation { continuation in

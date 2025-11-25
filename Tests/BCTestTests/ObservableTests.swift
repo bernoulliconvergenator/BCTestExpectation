@@ -124,7 +124,7 @@ import Observation
 
    // MARK: - test both button and throw state in one test
 
-   @Test @BCTest func testOnButtonTap() async throws {
+   @Test @BCTest func testOnButtonTap_recursiveObserve() async throws {
       let viewModel = ViewModel(chimChim: ChimChim())
       let buttonStateToOn = try await expectationManager.expectation("button state to on")
       let buttonStateToOff = try await expectationManager.expectation("button state to off")
@@ -167,5 +167,34 @@ import Observation
       try await awaitSatisfaction(of: [
          buttonStateToOn, buttonStateToOff, descriptionToThrowing, descriptionToThrown
       ], timeout: .seconds(2))
+   }
+
+   @available(iOS 26, macOS 26, *)
+   @Test @BCTest func testOnButtonTap_Observations() async throws {
+      let viewModel = ViewModel(chimChim: ChimChim())
+      let eThrowingCookies = try await expectationManager.expectation("throwing cookies")
+      let eCookiesThrown = try await expectationManager.expectation("cookies thrown")
+
+      let observations = Observations {
+         (viewModel.buttonState, viewModel.cookiesStateDescription)
+      }
+
+      let t = Task {
+         for await (buttonState, cookiesStateDescription) in observations {
+            log("observed: buttonState=\(buttonState), cookiesStateDescription=\(cookiesStateDescription)")
+            switch buttonState {
+            case .on:
+               #expect(cookiesStateDescription == "throwing")
+               eThrowingCookies.satisfy()
+            case .off:
+               #expect(cookiesStateDescription == "thrown")
+               eCookiesThrown.satisfy()
+            }
+         }
+      }
+
+      viewModel.onButtonTap()
+      try await awaitSatisfaction(of: [eThrowingCookies, eCookiesThrown], timeout: .seconds(1.5))
+      t.cancel()
    }
 }

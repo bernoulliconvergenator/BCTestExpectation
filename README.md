@@ -1,4 +1,6 @@
 # BCTestExpectation
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbernoulliconvergenator%2FBCTestExpectation%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/bernoulliconvergenator/BCTestExpectation)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbernoulliconvergenator%2FBCTestExpectation%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/bernoulliconvergenator/BCTestExpectation)
 
 The Swift package `BCTestExpectation` provides `XCTestExpectation`-like ergonomics for Swift Testing. `BCTestExpectation` is written using Swift Concurrency and adopts Approachable Concurrency.
 
