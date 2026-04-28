@@ -11,7 +11,7 @@ import Foundation
 ///
 /// Satisfaction requires invoking `satisfy()` `expectedCount` times. Await satisfaction by passing a `BCTestExpectation` to an
 /// invocation of top level nonisolated async func `awaitSatisfaction(of:timeOut:)`.
-public actor BCTestExpectation: Hashable, Loggable {
+public final actor BCTestExpectation: Hashable, Loggable {
    public static let forever = Duration.seconds(Int64.max)
    public nonisolated let id = UUID()
 

@@ -1,26 +1,22 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.3
 
 import PackageDescription
 import CompilerPluginSupport
 
 let package = Package(
    name: "BCTestExpectation",
-
    platforms: [
       .iOS(.v17), .macOS(.v14), .macCatalyst(.v17), .tvOS(.v17), .watchOS(.v10), .visionOS(.v1)
    ],
-
    products: [
       .library(
          name: "BCTestExpectation",
          targets: ["BCTestExpectation"]
       )
    ],
-
    dependencies: [
       .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "602.0.0")
    ],
-
    targets: [
       .target(
          name: "BCTestExpectation",
@@ -31,7 +27,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .macro(
@@ -43,7 +40,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .target(
@@ -51,7 +49,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .target(
@@ -59,7 +58,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .testTarget(
@@ -71,7 +71,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .testTarget(
@@ -84,7 +85,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .testTarget(
@@ -96,7 +98,8 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       ),
       .testTarget(
@@ -104,10 +107,10 @@ let package = Package(
          swiftSettings: [
             .defaultIsolation(MainActor.self),
             .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
-            .enableUpcomingFeature("InferIsolatedConformances")
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .strictMemorySafety()
          ]
       )
    ],
-
    swiftLanguageModes: [.v6]
 )

@@ -4,7 +4,7 @@
 
 The Swift package `BCTestExpectation` provides `XCTestExpectation`-like ergonomics for Swift Testing. `BCTestExpectation` is written using Swift Concurrency and adopts Approachable Concurrency.
 
-With `XCTestExpectation` we might have tested completion callback code with:
+With `XCTestExpectation` we tested completion callback code with:
 ```swift
 func testDroneOnDeploy() async {
   let e = self.expectation()
@@ -13,17 +13,17 @@ func testDroneOnDeploy() async {
 }
 ```
 
-With `BCTestExpectation`, we do nearly the same:
+With `BCTestExpectation`, we do similar:
 ```swift
 @Test @BCTest func testDroneOnDeploy() async throws {
-  let expectation = expectationManager.expectation()
+  let expectation = try await expectationManager.expectation()
   await mach5.deployDrone(onDeployed: { _ in expectation.satisfy() })
   try await awaitSatisfaction(of: [expectation], timeout: .seconds(1))
 }
 ```
 Note addition of `@BCTest` macro in the function header.
 
-Failures are also very similar. With `XCTestExpectation`, this test fails with `Asynchronous wait failed: Exceeded timeout of 0.5 seconds, with unfulfilled expectations: "fulfill".`
+Failures are also similar. With `XCTestExpectation`, this test fails with `Asynchronous wait failed: Exceeded timeout of 0.5 seconds, with unfulfilled expectations: "fulfill".`
 ```swift
 func testFailToFulfill() {
   let e = self.expectation()
@@ -42,7 +42,7 @@ In the `@BCTest` functions above, `expectation` is a `BCTestExpectation` and `ex
 ```swift
 @Test @BCTest func testDroneOnDeploy() async throws {
   let expectationManager = BCTestExpectationManager()
-  let expectation = expectationManager.expectation()
+  let expectation = try await expectationManager.expectation()
   await mach5.deployDrone(onDeployed: { _ in expectation.satisfy() })
   try await awaitSatisfaction(of: [expectation], timeout: .seconds(1))
   await expectationManager.assertExpectationsSatisfied()
@@ -50,9 +50,9 @@ In the `@BCTest` functions above, `expectation` is a `BCTestExpectation` and `ex
 ``` 
 The first and last lines are the only additions. See the Implementation section for more details. 
 
-A `BCTestExpectation` can await on asynchronous events, can be configured to be satisfied 0, 1, or more times, and can be configured to fail if not satisfied within a certain time or if over satisfied.
+A `BCTestExpectation` can await on asynchronous events, can be configured to be satisfied 0, 1, or more times and to fail if not satisfied within a certain time or if over satisfied.
 
-`BCTestExpectation` has more use than simplifying migration to Swift Testing from `XCTestExpectation`. Consider how we might test an `@Observable` view model with observable property `buttonState`:
+Consider how `BCTestExpectation`  can test an `@Observable` model with observable property `buttonState`:
 ```swift
 @MainActor func onThrowCookiesButtonTap() {
   buttonState = .on
@@ -115,7 +115,7 @@ Swift Testing and Swift Concurrency provide options for testing asynchronous cod
 
 ### Using Swift Testing `Confirmation` to test asynchronous code
 
-Swift Testing's' `Confirmation` must be confirmed before execution of its closure parameter completes. If confirmation must occur after an asynchronously executed event, e.g. in a callback, a workaround is to use a `Task.sleep` after triggering the flow that results in the asynchronous event. The sleep duration needs to be long enough for the asynchronous event to occur, else the test can fail even though the code executes correctly. Unfortunately, the `Task.sleep` is non-short circuiting so the test always takes as long as the sleep duration.
+Swift Testing `Confirmation` must be confirmed before execution of its closure parameter completes. If confirmation must occur after an asynchronously executed event, e.g. in a callback, a workaround is to use a `Task.sleep` after triggering the flow that results in the asynchronous event. The sleep duration needs to be long enough for the asynchronous event to occur, else the test can fail even though the code executes correctly. Unfortunately, the `Task.sleep` is non-short circuiting so the test always takes as long as the sleep duration.
 
 Testing asynchronous completion handler code with `Confirmation` and a tail sleep:
 ```swift

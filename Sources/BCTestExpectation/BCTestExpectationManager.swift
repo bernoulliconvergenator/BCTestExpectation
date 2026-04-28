@@ -7,7 +7,7 @@ import Foundation
 /// be asserted by invoking `assertExpectationsSatisfied()` on the manager that created it.
 ///
 /// A `BCTestExpectationManager` and assertion of satisfaction of expectations it created are provided by the `@BCTest` macro.
-public actor BCTestExpectationManager {
+public final actor BCTestExpectationManager {
    private var expectations: Set<BCTestExpectation> = []
    private var didAssert = false
 
