@@ -1,4 +1,5 @@
 import Testing
+@testable import BCLoggable
 import Foundation
 @testable import BCTestExpectation
 
@@ -61,8 +62,8 @@ import Foundation
 
    // MARK: - pause before over satisfy
 
-   // In both cases, the suspension at Task.sleep before over satisfaction cause over satisfaction to be missed because the wait
-   // for satisfaction is allowed to end
+   // The suspension at Task.sleep before over satisfaction causes over satisfaction to be missed because the wait for
+   // satisfaction is allowed to end
 
    @Test("suspension in Task means this does not catch error BCTestExpectation.SatisfyError.overSatisfied")
    @BCTest()
@@ -71,8 +72,12 @@ import Foundation
 
       Task {
          expectation.satisfy()
-         try await Task.sleep(for: .milliseconds(100))
-         expectation.satisfy()
+         do {
+            try await Task.sleep(for: .milliseconds(100))
+            expectation.satisfy()
+         } catch {
+            Issue.record("Failed to over satisfy.")
+         }
       }
 
       try await awaitSatisfaction(of: expectation)
@@ -85,9 +90,12 @@ import Foundation
 
       Task.detached {
          expectation.satisfy()
-         // because of this pause, awaitSatisfaction(of:) will have completed and not detect second satisfaction
-         try await Task.sleep(for: .milliseconds(100))
-         expectation.satisfy()
+         do {
+            try await Task.sleep(for: .milliseconds(100))
+            expectation.satisfy()
+         } catch {
+            Issue.record("Failed to over satisfy.")
+         }
       }
 
       try await awaitSatisfaction(of: expectation)

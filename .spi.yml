@@ -3,5 +3,5 @@ metadata:
   authors: Bernoulli Convergenator
 builder:
   configs:
-    - swift_version: 6.2
+    - swift_version: 6.4
       documentation_targets: [BCTestExpectation]

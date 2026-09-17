@@ -1,4 +1,5 @@
 import Testing
+@testable import BCLoggable
 import Observation
 import Foundation
 @testable import BCTestExpectation
@@ -66,8 +67,12 @@ import Foundation
       expectation.satisfy()
 
       Task.detached {
-         try await Task.sleep(for: .milliseconds(250))
-         try await awaitSatisfaction(of: expectation)
+         do {
+            try await Task.sleep(for: .milliseconds(250))
+            try await awaitSatisfaction(of: expectation)
+         } catch {
+            log("unexpected error: \(error)")
+         }
       }
    }
 
@@ -81,7 +86,11 @@ import Foundation
       // 0:00.4 async satisfy
 
       Task.detached {
-         try await awaitSatisfaction(of: expectation)
+         do {
+            try await awaitSatisfaction(of: expectation)
+         } catch {
+            log("unexpected error: \(error)")
+         }
       }
 
       let _ = Task.detached {

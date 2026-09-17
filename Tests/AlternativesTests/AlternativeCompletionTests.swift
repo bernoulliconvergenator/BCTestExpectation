@@ -1,7 +1,7 @@
 import Testing
 import Foundation
-@testable import TestSupport
 @testable import BCLoggable
+@testable import TestSupport
 
 /*
  Sone of these tests may crash if run as a `Suite`. They perform correctly if run individually.
@@ -21,8 +21,8 @@ struct AlternativeCompletionTests: Loggable {
    /// Because non-escaping `onDeployed` callback of `deployJacks` is invoked before `deployJacks` returns, no tail sleep needed.
    @Test func testDeployJacks_confirmation() async throws {
       let mach5 = Mach5()
-      await confirmation { confirm in
-         await mach5.deployJacks(
+      try await confirmation { confirm in
+         try await mach5.deployJacks(
             onDeployed: {
                confirm()
             }
@@ -31,7 +31,7 @@ struct AlternativeCompletionTests: Loggable {
    }
 
    /// Because escaping `onDeployed` callback of `deployDrone` is NOT guaranteed to be invoked before `deployDrone` returns, test
-   /// can fail without tail sleep even though the callback is correctly invoked..
+   /// can fail without tail sleep even though the callback is correctly invoked.
    @Test func testDeployDrone_confirmation_missingTailSleep() async throws {
       let mach5 = Mach5()
       await withKnownIssue {
@@ -79,33 +79,42 @@ struct AlternativeCompletionTests: Loggable {
 
    // Only deployDrone's escaping onDeployed callback is interesting for CheckedContinuation.
 
-   /// This test has a bug: because the first child task's completes almost immediately, the sleep task is cancelled before it can
-   /// fire. Note that the sleep task is configured to timeout before the drone is deployed, but it never gets a chance to. More,
-   /// if there was a code flaw that didn't invoke the `onDeployed` callback, this function would never exit.
+   /// This test demonstrates the difficultly reasoning about testing asynchronous behavior with `Continuations`.
+   ///
+   /// This test passes with a bug: because the first child task's completes almost immediately, the second child's sleep task is
+   /// cancelled before it can fire. Note that the sleep task is configured to timeout before the drone is deployed, but it is
+   /// cancelled when the first task completes without having invoked onDeployed completion. When the completion executes the
+   /// child task is not cancelled because it completed.
+   ///
+   /// Also note if there was a code flaw that didn't invoke the `onDeployed` callback, this function would never exit.
    @Test func testDeployDrone_checkedContinuation_bug() async throws {
       let mach5 = Mach5()
       try await withCheckedThrowingContinuation { continuation in
          Task {
-            try await withThrowingTaskGroup { group in
-               group.addTask {
-                  await mach5.deployDrone(
-                     onDeployed: { _ in
-                        if !Task.isCancelled {
-                           log("resuming OK")
-                           continuation.resume()
+            do {
+               try await withThrowingTaskGroup { group in
+                  group.addTask {
+                     await mach5.deployDrone(
+                        onDeployed: { _ in
+                           if !Task.isCancelled {
+                              log("resuming OK")
+                              continuation.resume()
+                           }
                         }
-                     }
-                  )
+                     )
+                  }
+                  group.addTask {
+                     // Task.sleep cooperatively cancels and throws if cancelled, so no need to check Task.cancelled
+                     try await Task.sleep(for: .seconds(1))
+                     log("resuming throwing timed out")
+                     continuation.resume(throwing: Error.timedOut)
+                  }
+                  let _ = try await group.next()
+                  log("cancelling unfinished child tasks")
+                  group.cancelAll()
                }
-               group.addTask {
-                  // Task.sleep cooperatively cancels and throws if cancelled, so no need to check Task.cancelled
-                  try await Task.sleep(for: .seconds(1))
-                  log("resuming throwing timed out")
-                  continuation.resume(throwing: Error.timedOut)
-               }
-               let _ = try await group.next()
-               log("cancelling unfinished child tasks")
-               group.cancelAll()
+            } catch {
+               continuation.resume(throwing: Error.unexpected(error))
             }
          }
       }
@@ -119,6 +128,48 @@ struct AlternativeCompletionTests: Loggable {
       await withKnownIssue {
          try await withCheckedThrowingContinuation { continuation in
             Task {
+               do {
+                  try await withThrowingTaskGroup { group in
+                     group.addTask {
+                        await withCheckedContinuation { nestedContinuation in
+                           Task {
+                              await mach5.deployDrone(
+                                 onDeployed: { _ in
+                                    if !Task.isCancelled {
+                                       log("resuming OK")
+                                       continuation.resume()
+                                    }
+                                    nestedContinuation.resume()
+                                 }
+                              )
+                           }
+                        }
+                     }
+                     group.addTask {
+                        // Task.sleep cooperatively cancels and throws if cancelled, so no need to check Task.cancelled
+                        try await Task.sleep(for: .seconds(1))
+                        log("resuming throwing timed out")
+                        continuation.resume(throwing: Error.timedOut)
+                     }
+                     let _ = try await group.next()
+                     log("cancelling unfinished child tasks")
+                     group.cancelAll()
+                  }
+               } catch {
+                  continuation.resume(throwing: Error.unexpected(error))
+               }
+            }
+         }
+      }
+   }
+
+   /// This test both fixes the bug and has timeout task of sufficient length to allow `onDeployed` to be called and to correctly
+   /// abort the test if it is not.
+   @Test func testDeployDrone_checkedContinuation_fixedAndSufficientTimeout() async throws {
+      let mach5 = Mach5()
+      try await withCheckedThrowingContinuation { continuation in
+         Task {
+            do {
                try await withThrowingTaskGroup { group in
                   group.addTask {
                      await withCheckedContinuation { nestedContinuation in
@@ -137,7 +188,7 @@ struct AlternativeCompletionTests: Loggable {
                   }
                   group.addTask {
                      // Task.sleep cooperatively cancels and throws if cancelled, so no need to check Task.cancelled
-                     try await Task.sleep(for: .seconds(1))
+                     try await Task.sleep(for: .seconds(10))
                      log("resuming throwing timed out")
                      continuation.resume(throwing: Error.timedOut)
                   }
@@ -145,42 +196,8 @@ struct AlternativeCompletionTests: Loggable {
                   log("cancelling unfinished child tasks")
                   group.cancelAll()
                }
-            }
-         }
-      }
-   }
-
-   /// This test both fixes the bug and has timeout task of sufficient length to allow `onDeployed` to be called and to correctly
-   /// abort the test if it is not.
-   @Test func testDeployDrone_checkedContinuation_fixedAndSufficientTimeout() async throws {
-      let mach5 = Mach5()
-      try await withCheckedThrowingContinuation { continuation in
-         Task {
-            try await withThrowingTaskGroup { group in
-               group.addTask {
-                  await withCheckedContinuation { nestedContinuation in
-                     Task {
-                        await mach5.deployDrone(
-                           onDeployed: { _ in
-                              if !Task.isCancelled {
-                                 log("resuming OK")
-                                 continuation.resume()
-                              }
-                              nestedContinuation.resume()
-                           }
-                        )
-                     }
-                  }
-               }
-               group.addTask {
-                  // Task.sleep cooperatively cancels and throws if cancelled, so no need to check Task.cancelled
-                  try await Task.sleep(for: .seconds(10))
-                  log("resuming throwing timed out")
-                  continuation.resume(throwing: Error.timedOut)
-               }
-               let _ = try await group.next()
-               log("cancelling unfinished child tasks")
-               group.cancelAll()
+            } catch {
+               continuation.resume(throwing: Error.unexpected(error))
             }
          }
       }
@@ -188,5 +205,6 @@ struct AlternativeCompletionTests: Loggable {
 
    enum Error: Swift.Error {
       case timedOut
+      case unexpected(Swift.Error)
    }
 }

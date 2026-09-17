@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.4
 
 import PackageDescription
 import CompilerPluginSupport
@@ -15,7 +15,7 @@ let package = Package(
       )
    ],
    dependencies: [
-      .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "602.0.0")
+      .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.2")
    ],
    targets: [
       .target(
@@ -26,7 +26,7 @@ let package = Package(
          ],
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
@@ -39,7 +39,7 @@ let package = Package(
          ],
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
@@ -48,16 +48,19 @@ let package = Package(
          name: "BCLoggable",
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
       ),
       .target(
          name: "TestSupport",
+         dependencies: [
+            "BCLoggable"
+         ],
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
@@ -70,7 +73,7 @@ let package = Package(
          ],
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
@@ -84,7 +87,7 @@ let package = Package(
          ],
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
@@ -97,7 +100,7 @@ let package = Package(
          ],
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]
@@ -106,7 +109,7 @@ let package = Package(
          name: "XCTestTests",
          swiftSettings: [
             .defaultIsolation(MainActor.self),
-            .enableExperimentalFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             .enableUpcomingFeature("InferIsolatedConformances"),
             .strictMemorySafety()
          ]

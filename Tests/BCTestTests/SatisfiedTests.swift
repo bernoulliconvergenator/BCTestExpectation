@@ -119,8 +119,12 @@ import Foundation
       let expectation = try await expectationManager.expectation()
 
       Task {
-         try await Task.sleep(for: .milliseconds(100))
-         expectation.satisfy()
+         do {
+            try await Task.sleep(for: .milliseconds(100))
+            expectation.satisfy()
+         } catch {
+            Issue.record("Failed to satisfy.")
+         }
       }
 
       try await awaitSatisfaction(of: expectation)
@@ -130,8 +134,12 @@ import Foundation
       let expectation = try await expectationManager.expectation()
 
       Task.detached {
-         try await Task.sleep(for: .milliseconds(100))
-         expectation.satisfy()
+         do {
+            try await Task.sleep(for: .milliseconds(100))
+            expectation.satisfy()
+         } catch {
+            Issue.record("Failed to satisfy.")
+         }
       }
 
       try await awaitSatisfaction(of: expectation)

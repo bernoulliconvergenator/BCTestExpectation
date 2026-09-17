@@ -9,7 +9,7 @@ import Foundation
       let mach5 = Mach5()
       let expectation = try await expectationManager.expectation()
 
-      await mach5.deployJacks {
+      try await mach5.deployJacks {
          expectation.satisfy()
       }
 

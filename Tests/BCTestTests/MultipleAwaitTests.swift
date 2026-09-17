@@ -20,11 +20,12 @@ import Foundation
 
    // MARK: - multiple await in Task
 
-   @Test @BCTest func concurrentMultipleAwait() async throws {
+   @Test("should catch error BCTestExpectation.AwaitError.alreadyAwaited")
+   @BCTest func concurrentMultipleAwait() async throws {
       let expectation = try await expectationManager.expectation()
       expectation.satisfy()
 
-      Task {
+      let t = Task {
          try await awaitSatisfaction(of: expectation)
 
          await withKnownIssue {
@@ -32,7 +33,7 @@ import Foundation
          }
       }
 
-      try await Task.sleep(for: .milliseconds(300)) // required since awaiting satisfaction  concurrently
+      let _ = try await t.value
       // crashes if no wait, "Fatal error: Internal inconsistency: No test reporter for test"
    }
 
@@ -48,7 +49,7 @@ import Foundation
       let expectation = try await expectationManager.expectation()
       expectation.satisfy()
 
-      Task.detached {
+      let t = Task.detached {
          try await awaitSatisfaction(of: expectation)
 
          await withKnownIssue {
@@ -56,6 +57,6 @@ import Foundation
          }
       }
 
-      try await Task.sleep(for: .milliseconds(300)) // required since awaiting satisfaction concurrently
+      let _ = try await t.value
    }
 }
